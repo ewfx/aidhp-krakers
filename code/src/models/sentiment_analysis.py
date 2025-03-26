@@ -1,21 +1,42 @@
-# sentiment_analysis.py
-from models.gpt_neo_model import load_model
+import openai
+import os
+
+# Set up the OpenAI API key
 
 def analyze_sentiment(post_text):
-    model, tokenizer = load_model()
-    print(post_text)
-    # Create the sentiment analysis prompt
-    prompt = f"Classify the sentiment of the following social media post as Positive, Negative, or Neutral:\n\nPost: {post_text}\nSentiment:"
+    # Define the prompt to ask the model to classify sentiment
+    prompt = f"Type ONLY the sentiment of this social media post as positive or negative:{post_text}"
+    #prompt="How are you"
+    client = openai.OpenAI(
+        base_url = "https://openrouter.ai/api/v1",
+        api_key = os.getenv("OPENROUTER_MISTRAL_KEY")
+    )
+    # Call OpenAI's API to generate a response based on the prompt
+    try:
+        print(os.getenv("OPENROUTER_MISTRAL_KEY"))
+        print(client.api_key)
+        response = client.chat.completions.create(
+            model="meta-llama/llama-3.3-70b-instruct:free",
+            messages=[
+                {
+                    "role": "user",
+                    "content":[
+                        {
+                            "type":"text",
+                            "text":prompt
+                        }
+                    ]
+                }
+            ],            
+            temperature=0,  # Temperature 0 for deterministic answers,
+            max_completion_tokens=1
+        )
 
-    # Tokenize the input and generate a prediction
-    inputs = tokenizer(prompt, return_tensors="pt")
-    outputs = model.generate(**inputs)
-    response = tokenizer.decode(outputs[0], skip_special_tokens=True)
+        # Extract and return the sentiment
+        print(response.choices)
+        sentiment = response.choices[0].message.content
+        return sentiment
 
-    # Extract sentiment from model's response
-    if "Positive" in response:
-        return "Positive"
-    elif "Negative" in response:
-        return "Negative"
-    else:
-        return "Neutral"
+    except Exception as e:
+        print(f"Error analyzing sentiment: {e}")
+        return "Error"

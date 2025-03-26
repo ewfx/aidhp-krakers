@@ -1,0 +1,9 @@
+# HuggingFace Transformers library for using GPT-Neo and other models
+transformers==4.50.1
+
+# PyTorch, required for running the models
+torch==2.6.0
+
+pandas >= 2.1.2
+
+openai==1.68.2
